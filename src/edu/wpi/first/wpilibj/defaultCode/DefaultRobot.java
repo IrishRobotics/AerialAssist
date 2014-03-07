@@ -4,6 +4,9 @@
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
+/*
+ * Here is a meaningless comment!!! YAY!!!!
+*/
 package edu.wpi.first.wpilibj.defaultCode;
 
 //import edu.wpi.first.wpilibj.Accelerometer;
