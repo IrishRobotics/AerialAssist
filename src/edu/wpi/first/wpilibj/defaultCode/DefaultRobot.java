@@ -1,12 +1,3 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) FIRST 2008. All Rights Reserved.                             */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-/*
- * Here is a meaningless comment!!! YAY!!!!
-*/
 package edu.wpi.first.wpilibj.defaultCode;
 
 //import edu.wpi.first.wpilibj.Accelerometer;
@@ -28,60 +19,6 @@ import edu.wpi.first.wpilibj.Relay;
 //import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-/**
- * This "BuiltinDefaultCode" provides the "default code" functionality as used
- * in the "Benchtop Test."
- *
- * The BuiltinDefaultCode extends the IterativeRobot base class to provide the
- * "default code" functionality to confirm the operation and usage of the core
- * control system components, as used in the "Benchtop Test" described in
- * Chapter 2 of the 2009 FRC Control System Manual.
- *
- * This program provides features in the Disabled, Autonomous, and Teleop modes
- * as described in the benchtop test directions, including "once-a-second"
- * debugging printouts when disabled, a "KITT light show" on the solenoid lights
- * when in autonomous, and elementary driving capabilities and "button mapping"
- * of joysticks when teleoperated. This demonstration program also shows the use
- * of the user watchdog timer.
- *
- * This demonstration is not intended to serve as a "starting template" for
- * development of robot code for a team, as there are better templates and
- * examples created specifically for that purpose. However, teams may find the
- * techniques used in this program to be interesting possibilities for use in
- * their own robot code.
- *
- * The details of the behavior provided by this demonstration are summarized
- * below:
- *
- * Disabled Mode: - Once per second, print (on the console) the number of
- * seconds the robot has been disabled.
- *
- * Autonomous Mode: - Flash the solenoid lights like KITT in Knight Rider -
- * Example code (commented out by default) to drive forward at half-speed for 2
- * seconds
- *
- * Teleop Mode: - Select between two different drive options depending upon
- * Z-location of Joystick1 - When "Z-Up" (on Joystick1) provide "arcade drive"
- * on Joystick1 - When "Z-Down" (on Joystick1) provide "tank drive" on Joystick1
- * and Joystick2 - Use Joystick buttons (on Joystick1 or Joystick2) to display
- * the button number in binary on the solenoid LEDs (Note that this feature can
- * be used to easily "map out" the buttons on a Joystick. Note also that if
- * multiple buttons are pressed simultaneously, a "15" is displayed on the
- * solenoid LEDs to indicate that multiple buttons are pressed.)
- *
- * This code assumes the following connections: - Driver Station: - USB 1 - The
- * "right" joystick. Used for either "arcade drive" or "right" stick for tank
- * drive - USB 2 - The "left" joystick. Used as the "left" stick for tank drive
- *
- * - Robot: - Digital Sidecar 1: - PWM 1/3 - Connected to "left" drive motor(s)
- * - PWM 2/4 - Connected to "right" drive motor(s)
- *
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the manifest file in the resource
- * directory.
- */
 public class DefaultRobot extends IterativeRobot {
 
     // Declare variable for the robot drive system
@@ -96,25 +33,12 @@ public class DefaultRobot extends IterativeRobot {
     Relay hook;
     Relay r_mouseTrapFeeder;
 
-    int m_dsPacketsReceivedInCurrentSecond;	// keep track of the ds packets received in the current second
-
     // Declare variables for the two joysticks being used
     Joystick joystick;			// joystick 1 (arcade stick or right tank stick)
-    Joystick m_leftStick;			// joystick 2 (tank left stick)
-
-    static final int NUM_JOYSTICK_BUTTONS = 16;
-    boolean[] m_rightStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS + 1)];
-    boolean[] m_leftStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS + 1)];
-
     // Declare variables for each of the eight solenoid outputs
     static final int NUM_SOLENOIDS = 8;
     Solenoid[] m_solenoids = new Solenoid[NUM_SOLENOIDS];
 
-    // drive mode selection
-    static final int UNINITIALIZED_DRIVE = 0;
-    static final int ARCADE_DRIVE = 1;
-    static final int TANK_DRIVE = 2;
-    int m_driveMode;
     //print to drivestation
     DriverStationLCD TV;
     DriverStation DS;
@@ -123,37 +47,18 @@ public class DefaultRobot extends IterativeRobot {
     // Local variables to count the number of periodic loops performed
     int m_autoPeriodicLoops;
     int m_disabledPeriodicLoops;
-    int m_telePeriodicLoops;
 
     int teleopStartSec;
     
-    double mouseTrapSpeed;
-    //ultrasonic
-    //MaxbotixUltrasonic ranger; //ultrasonic
-    double distance, biggestVolt, countvolt;//ultrasonic
     //Switches
     //final private DigitalInput switch1;
     DigitalInput hook_forward, hook_backward; // switches for controling the hook
-   // private DigitalInput sw_mouseTrapForward, sw_mouseTrapBackward;
-    
     
     char hookDirection, mouseTrapDirection;
     double lastPressY, lastPressA, lastPressB;
     
-    DigitalInput redSensor; // when nothing in front of it = true, when something front = false;
+    DigitalInput tensionSensor; // when nothing in front of it = true, when something front = false;
     
-    
-    
-    //private DigitalInput tensioned; // switch for if winder tensioned
-    //Accelerometers
-    //Accelerometer accelX;
-    //Accelerometer accelY;
-
-    //Gyro
-    Gyro gyro;
-    //camra mount
-    Servo camSwivel, camTilt;
-    // Kinect kinect;
     /**
      * Constructor for this "BuiltinDefaultCode" Class.
      *
@@ -165,16 +70,13 @@ public class DefaultRobot extends IterativeRobot {
     public DefaultRobot() {
         System.out.println("BuiltinDefaultCode Constructor Started=========================================\n ");
         //ranger = new MaxbotixUltrasonic(1);//ultrasonic
-        //hoop_down = new DigitalInput();//switch
         // drive on PWMS 1, 2
         m_robotDrive = new RobotDrive(1, 2);//robot drive
         joystick = new Joystick(1); //XBox controller
-        m_leftStick = new Joystick(2);
-//        hoop_down = new DigitalInput();
         hook_forward = new DigitalInput(5);//switch checking if hook set forward 
         hook_backward = new DigitalInput(2);//switch checking if hook set backward
       //  sw_Tension = new DigitalInput(6); //switch to read if tensioned
-        redSensor = new DigitalInput(8);
+        tensionSensor = new DigitalInput(8);
         hook = new Relay(4); // reverse = forward move
         
         mouseTrap = new Jaguar(7);// reads signal from victor/(spike) in pwm 4
@@ -194,23 +96,12 @@ public class DefaultRobot extends IterativeRobot {
         
         hookDirection = '*';
         mouseTrapDirection = '*';
-        
-        mouseTrapSpeed = .75;
-        // Iterate over all the buttons on each joystick, setting state to false for each
-        int buttonNum;						// start counting buttons at button 1
-        for (buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
-            m_rightStickButtonState[buttonNum] = false;
-            m_leftStickButtonState[buttonNum] = false;
-        }
-
+       
         // Iterate over all the solenoids on the robot, constructing each in turn
         int solenoidNum;						// start counting solenoids at solenoid 1
         for (solenoidNum = 0; solenoidNum < NUM_SOLENOIDS; solenoidNum++) {
             m_solenoids[solenoidNum] = new Solenoid(solenoidNum + 1);
         }
-
-        // Set drive mode to uninitialized
-        m_driveMode = UNINITIALIZED_DRIVE;
 
         //drivestation
         TV = DriverStationLCD.getInstance();
@@ -219,7 +110,6 @@ public class DefaultRobot extends IterativeRobot {
         // Initialize counters to record the number of loops completed in autonomous and teleop modes
         m_autoPeriodicLoops = 0;
         m_disabledPeriodicLoops = 0;
-        m_telePeriodicLoops = 0;
 
         System.out.println("BuiltinDefaultCode Constructor Completed\n");
     }
@@ -340,30 +230,16 @@ public class DefaultRobot extends IterativeRobot {
         }
         
         m_autoPeriodicLoops++;
-
-        // generate KITT-style LED display on the solenoids
-
-        /* the below code (if uncommented) would drive the robot forward at half speed
-         * for two seconds.  This code is provided as an example of how to drive the
-         * robot in autonomous mode, but is not enabled in the default code in order
-         * to prevent an unsuspecting team from having their robot drive autonomously!
-         */
-        /* below code commented out for safety
-         if (m_autoPeriodicLoops == 1) {
-         // When on the first periodic loop in autonomous mode, start driving forwards at half speed
-         m_robotDrive->Drive(0.5, 0.0);			// drive forwards at half speed
-         }
-         if (m_autoPeriodicLoops == (2 * GetLoopsPerSec())) {
-         // After 2 seconds, stop the robot
-         m_robotDrive->Drive(0.0, 0.0);			// stop robot
-         }
-         */
         TV.updateLCD();
 
     }
     double adjustmentAngle = 0.0;
-    
+   
+
     private void checkLimitSwitches() {
+    	/* The Hook Switches go "low" when they have their
+	 *  IR signal "broken." */
+
         /*
         System.out.print("hookDirection ");
         System.out.print(hookDirection);
@@ -373,10 +249,10 @@ public class DefaultRobot extends IterativeRobot {
         System.out.println(hook_backward.get());
         
        */
-        if(gyro.getAngle() > 65-adjustmentAngle && (hookDirection == '*' || hookDirection == 'F')) {
+	if(!hook_forward.get() && (hookDirection == '*' || hookDirection == 'F')) {
             hook.set(Relay.Value.kOff);
         }
-        if(gyro.getAngle() < 35-adjustmentAngle && (hookDirection == '*' || hookDirection == 'B')) {
+	if(!hook_backward.get() && (hookDirection == '*' || hookDirection == 'B')) {
             hook.set(Relay.Value.kOff);
         }
         if(/*sw_mouseTrapForward.get() &&*/ (mouseTrapDirection == '*' || mouseTrapDirection == 'F')) {
@@ -414,21 +290,6 @@ public class DefaultRobot extends IterativeRobot {
         checkLimitSwitches();
         //set hook light on or off
         // increment the number of teleop periodic loops completed
-        m_telePeriodicLoops++;
-
-        /*
-         * Code placed in here will be called only when a new packet of information
-         * has been received by the Driver Station.  Any code which needs new information
-         * from the DS should go in here
-         */
-        m_dsPacketsReceivedInCurrentSecond++;					// increment DS packets received
-
-        // put Driver Station-dependent code here
-        // Demonstrate the use of the Joystick buttons
-        Solenoid[] firstGroup = new Solenoid[4];
-           //there are no #'s in our code >:(
-        
-
 
       //  TV.println(DriverStationLCD.Line.kUser1, 1, "hook is back: " + hook_backward.get());
         /*
@@ -443,18 +304,16 @@ public class DefaultRobot extends IterativeRobot {
 
       // Button 1 == A
       if(joystick.getRawButton(1) && (currentTime - lastPressA) > 1.0){ 
-        System.out.print("Gyro: ");
-        System.out.println(gyro.getAngle());
+        System.out.print("Hook position: ");
+        System.out.println(hookPosition());
         lastPressA = currentTime;
         adjustmentAngle += 0.0;
-        if(gyro.getAngle() <= 30.00-adjustmentAngle) {
+	if(hookPosition() != 'F') {
                 // run motor until hook forward is true.
                 hookForward();
-            
         } else {
                 hookBackward();
         }
-
       }
 
       // Button 4 == Y
@@ -492,12 +351,11 @@ public class DefaultRobot extends IterativeRobot {
             winder.set(0.0);
         }
         
-        if(!redSensor.get()) {
+        if(!tensionSensor.get()) {
            onTensionTriggered();
         }
-        TV.println(DriverStationLCD.Line.kUser1, 1, "*HOOK ENGAGED*:" + hook_forward.get());
-        TV.println(DriverStationLCD.Line.kUser2,1, "red sensor: " + redSensor.get());
-        TV.println(DriverStationLCD.Line.kUser3, 1, "Gyro: "+gyro.getAngle());
+        TV.println(DriverStationLCD.Line.kUser1, 1, "Hook Position: " + hookPosition());
+        TV.println(DriverStationLCD.Line.kUser2,1,  "Launch Sensor: " + tensionSensor.get());
         
         //update driverstation
         TV.updateLCD();
@@ -510,15 +368,25 @@ public class DefaultRobot extends IterativeRobot {
        // }
             winder.set(0.0);
     }
+
+    /** Returns the current position of the hook.
+     *  "F" means forward, "B" means "Backward" and "*" means "between"
+     */
+
+    private char hookPosition(){
+    	if(!hook_forward.get()) { return 'F'; }
+	if(!hook_backward.get()) { return 'B'; }
+	return '*';
+    }
     
     private void hookForward(){
-        if(gyro.getAngle() < 90-adjustmentAngle) {
+	if(hookPosition() != 'F') {
             hookDirection = 'F';
             hook.set(Relay.Value.kReverse);
         }
     }
     private void hookBackward(){
-        if(gyro.getAngle() > 30-adjustmentAngle) {
+	if(hookPosition() != 'B') {
             hookDirection = 'B';
             hook.set(Relay.Value.kForward);
         }
